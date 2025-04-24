@@ -1,183 +1,224 @@
-<!-- README.md -->
-
 ## Summary
 
-This guide shows how to package a multi-file TypeScript ES-module server (entry point `server.ts`) into a **single executable** using Node.js’s Single Executable Applications (SEA) feature and **postject**, always targeting the latest LTS Node via **nvm** [oai_citation_attribution:0‡Node.js — Run JavaScript Everywhere](https://nodejs.org/api/single-executable-applications.html?utm_source=chatgpt.com).
+This guide demonstrates how to package a multi-file TypeScript ES-Module server into a single executable using Node.js’s SEA feature and **postject**, targeting the latest LTS Node via **nvm**. You will:
+
+1. Install and manage Node.js versions with nvm.
+2. Scaffold a simple HTTP server in TypeScript and enable ES modules.
+3. Configure `tsconfig.json` for modern ESM output.
+4. Bundle your code into one file using your custom `build.mjs` script.
+5. Generate a SEA preparation blob with `node --experimental-sea-config`.
+6. Inject the blob into the Node binary using **postject**.
+7. Run your standalone executable to verify success.
 
 ---
 
 ## Prerequisites
 
-- A Unix-like shell (macOS/Linux) with `bash` or `zsh`.
-- `curl` or `wget` for downloading scripts.
-- `git` for nvm installation.
+- A Unix-like shell (`bash` or `zsh`).
+- `curl` or `wget` for downloading install scripts.
+- `git` for cloning repositories and installing nvm.
 
 ---
 
-## 1. Install “Latest LTS” Node via nvm
+## 1. Install Node.js via nvm
 
-1. **Install nvm**  
-   Run the official install script to clone nvm into `~/.nvm` and update your shell profile:
+1. **Install nvm**:
+
    ```bash
    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.5/install.sh | bash
    ```
 
-This script clones the nvm repo and adds export NVM_DIR=… and source $NVM_DIR/nvm.sh to your shell startup file ￼. 2. Load nvm into your shell
-Restart your terminal or run:
+   This clones the nvm repository and updates your shell profile.
 
-source ~/.bashrc # or `source ~/.zshrc`
+2. **Load nvm** (restart your terminal or run):
 
-This makes the nvm command available in your session ￼.
+   ```bash
+   source ~/.bashrc   # or `source ~/.zshrc`
+   ```
 
-    3.	Install & use the latest LTS
+   Makes the `nvm` command available in your session.
 
-nvm install --lts
-nvm use --lts
+3. **Install & use the latest LTS**:
 
-After this, node -v should print the latest LTS version (e.g. v24.x.x) ￼.
+   ```bash
+   nvm install --lts
+   nvm use --lts
+   ```
 
-⸻
+   After this, `node -v` should print the latest LTS version.
 
-2. Scaffold the ES-Module Server
-   1. Initialize your project
+4. **Verify installation**:
+   ```bash
+   node -v
+   npm -v
+   ```
+   Ensure both commands run without error.
 
-mkdir myapp && cd myapp
-npm init -y
+---
 
-    2.	Enable ES modules
+## 2. Scaffold the ES-Module Server
 
-In package.json, add:
+1. **Initialize your project**:
 
-{
-"type": "module",
-"scripts": {
-"start": "node server.bundle.js"
-}
-}
+   ```bash
+   mkdir myapp && cd myapp
+   npm init -y
+   ```
 
-    3.	Create your entry point
+   Creates `package.json` with default values.
 
-server.ts:
+2. **Enable ES modules**:
+   In `package.json`, add:
 
-import http from 'node:http';
+   ```json
+   {
+     "type": "module",
+     "scripts": {
+       "start": "node server.bundle.js"
+     }
+   }
+   ```
 
-const PORT = +(process.env.PORT || 3000);
-export const server = http.createServer((req, res) => {
-res.writeHead(200, { 'Content-Type': 'text/plain' });
-res.end(`Hello from standalone server!\n`);
-});
+   Tells Node.js to interpret `.js` files as ES modules.
 
-server.listen(PORT, () => console.log(`Listening on port ${PORT}`));
+3. **Create the entry point** (`server.ts`):
 
-This simple HTTP server responds on port 3000 ￼.
+   ```typescript
+   import http from "node:http";
 
-⸻
+   const PORT = +(process.env.PORT || 3000);
+   export const server = http.createServer((req, res) => {
+     res.writeHead(200, { "Content-Type": "text/plain" });
+     res.end(`Hello from standalone server!\n`);
+   });
 
-3. Configure TypeScript
-   1. Generate a base tsconfig.json:
+   server.listen(PORT, () => console.log(`Listening on port ${PORT}`));
+   ```
 
-npx tsc --init
+   A basic HTTP server responding on port 3000.
 
-This creates a template you can customize ￼.
+---
 
-    2.	Edit tsconfig.json:
+## 3. Configure TypeScript
 
-{
-"compilerOptions": {
-"target": "ES2020",
-"module": "ESNext",
-"moduleResolution": "node",
-"esModuleInterop": true,
-"allowSyntheticDefaultImports": true,
-"strict": true,
-"skipLibCheck": true,
-"sourceMap": true
-},
-"include": ["server.ts", "routes/**/*.ts"]
-}
+1. **Generate a base `tsconfig.json`**:
 
-    •	module: "ESNext" ensures modern ESM output  ￼.
-    •	sourceMap: true emits .map files for debugging.
+   ```bash
+   npx tsc --init
+   ```
 
-⸻
+   Creates a template configuration file.
 
-4. Bundle Your Code
+2. **Edit `tsconfig.json`**:
+   ```json
+   {
+     "compilerOptions": {
+       "target": "ES2020",
+       "module": "ESNext",
+       "moduleResolution": "node",
+       "esModuleInterop": true,
+       "allowSyntheticDefaultImports": true,
+       "strict": true,
+       "skipLibCheck": true,
+       "sourceMap": true
+     },
+     "include": ["server.ts", "routes/**/*.ts"]
+   }
+   ```
+   - `"module": "ESNext"` for modern ESM output.
+   - `"sourceMap": true` emits `.map` files for debugging.
 
-esbuild 1. Install:
+---
 
-npm install --save-dev esbuild
+## 4. Bundle Your Code
 
-    2.	Bundle:
+1. **Ensure your `build.mjs`** script is present at the project root. This script should invoke esbuild or rollup to produce `server.bundle.js`.
 
-node build.mjs
+2. **Run the build script**:
+   ```bash
+   node build.mjs
+   ```
+   Produces `server.bundle.js` as a single bundled file.
 
-Outputs a single CommonJS bundle quickly ￼.
+---
 
-⸻
+## 5. Generate the SEA Preparation Blob
 
-5. Generate the SEA Preparation Blob
-   1. Write sea-config.json:
+1. **Create `sea-config.json`**:
 
-{
-"main": "server.bundle.js",
-"output": "sea-prep.blob",
-"disableExperimentalSEAWarning": true,
-"useSnapshot": false,
-"useCodeCache": false
-}
+   ```json
+   {
+     "main": "server.bundle.js",
+     "output": "sea-prep.blob",
+     "disableExperimentalSEAWarning": true,
+     "useSnapshot": false,
+     "useCodeCache": false
+   }
+   ```
 
-Matches Node.js SEA schema ￼.
+   Matches the Node.js SEA schema.
 
-    2.	Run:
+2. **Run Node with SEA config**:
+   ```bash
+   node --experimental-sea-config sea-config.json
+   ```
+   Outputs:
+   ```text
+   Wrote single executable preparation blob to sea-prep.blob
+   ```
+   Embeds your bundle and V8 code cache.
 
-node --experimental-sea-config sea-config.json
+---
 
-Prints:
+## 6. Inject the Blob into the Node Binary
 
-Wrote single executable preparation blob to sea-prep.blob
+1. **Duplicate the Node executable**:
 
-Embeds your bundle and V8 code cache ￼.
+   ```bash
+   cp "$(which node)" myserver
+   ```
 
-⸻
+   Creates `myserver` for modification.
 
-6. Copy & Inject into Node Binary
-   1. Duplicate the nvm-managed Node executable:
+2. **(macOS only) Strip the code signature**:
 
-cp "$(which node)" myserver
+   ```bash
+   codesign --remove-signature myserver
+   ```
 
-    2.	(macOS) Strip signature:
+   Allows Mach-O segment updates.
 
-codesign --remove-signature myserver
+3. **Inject using postject**:
 
-Required to modify Mach-O segments ￼.
+   ```bash
+   npx postject myserver \
+     NODE_SEA_BLOB \
+     sea-prep.blob \
+     --sentinel-fuse NODE_SEA_FUSE_fce680ab2cc467b6e072b8b5df1996b2 \
+     --macho-segment-name NODE_SEA \
+     --overwrite
+   ```
 
-    3.	Inject via postject:
+   Embeds the SEA blob into the binary.
 
-npx postject myserver \
- NODE_SEA_BLOB \
- sea-prep.blob \
- --sentinel-fuse NODE_SEA_FUSE_fce680ab2cc467b6e072b8b5df1996b2 \
- --macho-segment-name NODE_SEA \
- --overwrite
+4. **(macOS only) Re-sign the binary (optional)**:
+   ```bash
+   codesign -s - myserver
+   ```
+   Restores a valid signature for system compatibility.
 
-Flips the single fuse entry and embeds your blob ￼.
+---
 
-    4.	(macOS) Re-sign (optional):
+## 7. Run Your Standalone Executable
 
-codesign --sign - myserver
-
-⸻
-
-7. Run Your Standalone Executable
-
+```bash
 ./myserver
+```
 
 You should see:
 
+```
 Listening on port 3000
+```
 
-instead of the Node REPL prompt, confirming your single-executable server ￼.
-
-⸻
-
-Enjoy your self-contained Node.js server—no external Node install needed!
+Confirming your single-executable server is running without an external Node.js install.
