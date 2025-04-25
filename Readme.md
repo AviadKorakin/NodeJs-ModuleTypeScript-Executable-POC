@@ -109,9 +109,14 @@ This guide demonstrates how to package a multi-file TypeScript ES-Module server 
 
    Creates a template configuration file.
 
-2. **Edit `tsconfig.json`**:
-   ```json
-   {
+Sure, here's the revised section exactly in the style you provided:
+
+
+---
+
+2. Edit tsconfig.json:
+```json
+{
   "compilerOptions": {
     "target": "ES2020",
     "module": "ESNext",
@@ -124,10 +129,17 @@ This guide demonstrates how to package a multi-file TypeScript ES-Module server 
   },
   "include": ["./**/*.ts"],
   "exclude": ["node_modules", "dist", "dist/**/*.ts", "build"]
-}   ```
-   - `"module": "ESNext"` for modern ESM output.
-   - `"sourceMap": true` emits `.map` files for debugging.
+}
+```
+"module": "ESNext" for modern ESM output.
 
+"sourceMap": true emits .map files for debugging.
+
+"strict": true enables strict type-checking for better code quality.
+
+"esModuleInterop": true allows CommonJS compatibility.
+
+"target": "ES2020" compiles to modern JavaScript.
 ---
 
 ## 4. Bundle Your Code
