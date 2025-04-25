@@ -112,19 +112,19 @@ This guide demonstrates how to package a multi-file TypeScript ES-Module server 
 2. **Edit `tsconfig.json`**:
    ```json
    {
-     "compilerOptions": {
-       "target": "ES2020",
-       "module": "ESNext",
-       "moduleResolution": "node",
-       "esModuleInterop": true,
-       "allowSyntheticDefaultImports": true,
-       "strict": true,
-       "skipLibCheck": true,
-       "sourceMap": true
-     },
-     "include": ["server.ts", "routes/**/*.ts"]
-   }
-   ```
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "sourceMap": true
+  },
+  "include": ["./**/*.ts"],
+  "exclude": ["node_modules", "dist", "dist/**/*.ts", "build"]
+}   ```
    - `"module": "ESNext"` for modern ESM output.
    - `"sourceMap": true` emits `.map` files for debugging.
 
