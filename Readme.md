@@ -138,8 +138,6 @@ Sure, here's the revised section exactly in the style you provided:
 "strict": true enables strict type-checking for better code quality.
 
 "esModuleInterop": true allows CommonJS compatibility.
-
-"target": "ES2020" compiles to modern JavaScript.
 ---
 
 ## 4. Bundle Your Code
