@@ -138,6 +138,7 @@ Sure, here's the revised section exactly in the style you provided:
 "strict": true enables strict type-checking for better code quality.
 
 "esModuleInterop": true allows CommonJS compatibility.
+
 ---
 
 ## 4. Bundle Your Code
